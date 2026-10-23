@@ -451,6 +451,23 @@ it('should keep names from aria-labelledby when the label is printed inside', as
   `);
 });
 
+it('should keep a name from content that includes a descendant aria-labelledby', async ({ page }) => {
+  // The generic child cannot print the name it takes from the heading, so the button's name is
+  // not fully represented by its printed content and must stay.
+  await page.setContent(`
+    <h2 id="account">Account</h2>
+    <button><span role="generic" aria-labelledby="account"></span><img alt="Save" width="16" height="16" src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA="></button>
+  `);
+
+  const snapshot = await snapshotForAI(page);
+  expect(snapshot).toContainYaml(`
+    - generic [active] [ref=e1]:
+      - heading "Account" [level=2] [ref=e2]
+      - button "AccountSave" [ref=e3]:
+        - img "Save" [ref=e4]
+  `);
+});
+
 it('should omit images without an accessible name', async ({ page }) => {
   await page.setContent(`
     <img src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=">
