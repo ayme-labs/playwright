@@ -432,6 +432,25 @@ it('should keep names not derived from printed nodes', async ({ page }) => {
   `);
 });
 
+it('should keep names from aria-labelledby when the label is printed inside', async ({ page }) => {
+  // The name comes from a relation, not from content: it identifies the node even though the
+  // heading it points at is printed as a child.
+  await page.setContent(`
+    <section aria-labelledby="team-1"><h2 id="team-1">Engineering</h2><p>Five people</p></section>
+    <div role="dialog" aria-labelledby="edit-title"><h2 id="edit-title">Edit member</h2></div>
+  `);
+
+  const snapshot = await snapshotForAI(page);
+  expect(snapshot).toContainYaml(`
+    - generic [active] [ref=e1]:
+      - region "Engineering" [ref=e2]:
+        - heading "Engineering" [level=2] [ref=e3]
+        - paragraph [ref=e4]: Five people
+      - dialog "Edit member" [ref=e5]:
+        - heading "Edit member" [level=2] [ref=e6]
+  `);
+});
+
 it('should omit images without an accessible name', async ({ page }) => {
   await page.setContent(`
     <img src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=">

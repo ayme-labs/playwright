@@ -697,8 +697,11 @@ function getTextAlternativeInternal(element: Element, options: AccessibleNameOpt
   // at least one valid IDREF, and the current node is not already part of an ongoing
   // aria-labelledby or aria-describedby traversal, process its IDREFs in the order they occur...
   if (!options.embeddedInLabelledBy) {
+    // A name from aria-labelledby comes from a relation, not from content, so the referenced
+    // elements are not collected: printing them does not make the name redundant.
     const accessibleName = joinCompositeString((labelledBy || []).map(ref => getTextAlternativeInternal(ref, {
       ...options,
+      collectElements: false,
       embeddedInLabelledBy: { element: ref, hidden: isElementHiddenForAria(ref) },
       embeddedInDescribedBy: undefined,
       embeddedInTargetElement: undefined,
